@@ -72,30 +72,12 @@ const MASTERS = [
   { id: 'm4', name: 'Дмитрий Козлов', phone: '+7 (900) 456-78-90', rating: 5.0, reviewsCount: 68, ordersDone: 72, rank: 'legend', avatar: 'trophy', about: 'Легенда нашего сервиса — 72 выполненных заказа', lat: 55.7500, lng: 37.6500 },
 ];
 
-const INITIAL_MASTER_REVIEWS = {
-  m1: [{ id: 'mr1-1', client: 'Иванов И.И.', rating: 5, date: '20 октября', text: 'Отличный мастер! Быстро и качественно установил батарею.' }, { id: 'mr1-2', client: 'Петрова А.С.', rating: 5, date: '18 октября', text: 'Сергей — профессионал. Починил котёл за час.' }],
-  m2: [{ id: 'mr2-1', client: 'Кузнецова М.А.', rating: 5, date: '19 октября', text: 'Андрей сделал тёплый пол в ванной. Очень аккуратно!' }],
-  m3: [{ id: 'mr3-1', client: 'Орлов В.В.', rating: 4, date: '16 октября', text: 'Сделал всё нормально, но долго разбирался.' }],
-  m4: [{ id: 'mr4-1', client: 'Смирнова Е.А.', rating: 5, date: '21 октября', text: 'Дмитрий — настоящий профи! Рекомендую всем.' }, { id: 'mr4-2', client: 'Волков А.Н.', rating: 5, date: '17 октября', text: 'Быстро, качественно, недорого.' }],
-};
-
+const INITIAL_MASTER_REVIEWS = {};
 const CLIENT_PROFILE = { name: 'Вы', surname: '', phone: '+7 (900) 000-00-00', rating: 4.9, reviewsCount: 8, ordersCount: 12, tips: 2500, avatar: null };
-const CLIENT_REVIEWS = [
-  { id: 'cr1', master: 'Сергей Иванов', rating: 5, date: '20 октября', text: 'Отличный клиент, всё по договорённости. Оплата сразу.' },
-  { id: 'cr2', master: 'Андрей Петров', rating: 5, date: '18 октября', text: 'Приятный человек, вежливый, заранее подготовил всё для работы.' },
-  { id: 'cr3', master: 'Дмитрий Козлов', rating: 5, date: '15 октября', text: 'Всегда рад помочь такому клиенту!' },
-];
+const CLIENT_REVIEWS = [];
 const MASTER_PROFILE = { name: 'Сергей', surname: 'Иванов', phone: '+7 (900) 123-45-67', ordersDone: 18, rating: 4.8, totalRatings: 27, balance: 45000, avatar: null };
-const INITIAL_REVIEWS = [
-  { id: 'r1', client: 'Иванов И.И.', rating: 5, date: '20 октября', text: 'Отличный мастер! Быстро и качественно установил батарею.', service: 'Монтаж радиатора' },
-  { id: 'r2', client: 'Петрова А.С.', rating: 5, date: '18 октября', text: 'Сергей профессионал своего дела.', service: 'Монтаж котла' },
-  { id: 'r3', client: 'Сидоров П.П.', rating: 4, date: '15 октября', text: 'Хорошая работа, но приехал на 15 минут позже.', service: 'Ремонт батареи' },
-];
-const INITIAL_MASTER_ORDERS_HISTORY = [
-  { id: 'h1', client: 'Смирнова Е.А.', date: '21 октября', amount: 6000, tip: 500, items: [{ title: 'Монтаж радиатора', qty: 1, price: 4500 }, { title: 'Выезд мастера', qty: 1, price: 2000 }] },
-  { id: 'h2', client: 'Волков А.Н.', date: '19 октября', amount: 5500, tip: 0, items: [{ title: 'Монтаж тёплого пола (5 кв.м)', qty: 1, price: 3500 }, { title: 'Выезд мастера', qty: 1, price: 2000 }] },
-  { id: 'h3', client: 'Орлов В.В.', date: '17 октября', amount: 4500, tip: 200, items: [{ title: 'Монтаж унитаза', qty: 1, price: 2500 }, { title: 'Выезд мастера', qty: 1, price: 2000 }] },
-];
+const INITIAL_REVIEWS = [];
+const INITIAL_MASTER_ORDERS_HISTORY = [];
 
 const CATEGORIES = [
   { id: 'service', title: 'Выезд мастера', icon: 'car-sport', color: '#27ae60' },
@@ -342,23 +324,8 @@ const SERVICES = [
   S('wl6', 'welding', 'Сварка стыка Ø50', 'от 2000 ₽', 'bonfire-outline'),
 ];
 
-const INITIAL_JOBS = [
-  { id: '1', client: 'Иванов И.И.', phone: '+7 (900) 123-45-67', address: 'ул. Ленина, 15, кв. 42', time: '10:00–12:00', status: 'new', lat: 55.7620, lng: 37.6100, items: [{ title: 'Монтаж радиатора', price: '4500 ₽', qty: 1 }], total: 4500, tip: 0 },
-  { id: '2', client: 'Петрова А.С.', phone: '+7 (900) 765-43-21', address: 'пр. Мира, 8, офис 3', time: '14:00–16:00', status: 'new', lat: 55.7700, lng: 37.6300, items: [{ title: 'Монтаж тёплого пола (5 кв.м)', price: '700 ₽', qty: 5 }], total: 3500, tip: 500 },
-];
-const SIMULATED_ORDERS = [
-  { client: 'Сидоров П.П.', phone: '+7 (900) 111-22-33', address: 'ул. Гагарина, 22, кв. 7', lat: 55.7400, lng: 37.5900, items: [{ title: 'Монтаж унитаза', price: '3500 ₽', qty: 1 }], total: 3500, tip: 200, delay: 8000 },
-  { client: 'Кузнецова М.А.', phone: '+7 (900) 444-55-66', address: 'ул. Пушкина, 5, кв. 14', lat: 55.7500, lng: 37.6200, items: [{ title: 'Монтаж настенного газового котла', price: '13000 ₽', qty: 1 }], total: 13000, tip: 0, delay: 20000 },
-  { client: 'Морозов Д.В.', phone: '+7 (900) 777-88-99', address: 'пр. Победы, 12, кв. 88', lat: 55.7300, lng: 37.6000, items: [{ title: 'Замена платы котла', price: '3000 ₽', qty: 1 }], total: 3000, tip: 1000, delay: 35000 },
-];
-const INITIAL_MESSAGES = [
-  { id: 'd1', type: 'date', text: 'Сегодня' },
-  { id: 'm1', author: 'Сергей', text: 'Кто сегодня на Ленина 15?', time: '09:12', mine: false, type: 'text' },
-  { id: 'm2', author: 'Вы', text: 'Я буду после обеда', time: '09:15', mine: true, type: 'text', read: true },
-  { id: 'm3', author: 'Андрей', text: 'Подскажите, какой котёл ставили на Мира 8?', time: '09:40', mine: false, type: 'text' },
-  { id: 'm4', author: 'Сергей', text: 'Baxi Luna-3, если что — у меня есть инструкция', time: '09:42', mine: false, type: 'text' },
-  { id: 'm5', author: 'Вы', text: 'Спасибо, буду знать', time: '09:45', mine: true, type: 'text', read: true },
-];
+const INITIAL_JOBS = [];
+const INITIAL_MESSAGES = [{ id: 'd1', type: 'date', text: 'Сегодня' }];
 const STATUS_LABELS = { new: 'Новая', on_way: 'В пути', on_site: 'На объекте', done: 'Завершена' };
 const pluralServices = (n) => { const m10 = n % 10, m100 = n % 100; if (m10 === 1 && m100 !== 11) return 'услуга'; if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'услуги'; return 'услуг'; };
 const renderStars = (rating, size = 14) => { const arr = []; for (let i = 1; i <= 5; i++) { arr.push(<Ionicons key={i} name={i <= Math.round(rating) ? 'star' : 'star-outline'} size={size} color="#f39c12" style={{ marginRight: 2 }} />); } return arr; };
@@ -1353,7 +1320,9 @@ function MasterScreen({ onExit, user }) {
 
   useEffect(() => { (async () => { try { const raw = await AsyncStorage.getItem(TAKEN_JOBS_KEY); const taken = raw ? JSON.parse(raw) : {}; const myId = user?.id; setJobs(prev => prev.filter(j => !taken[j.id] || taken[j.id].owner === myId).map(j => taken[j.id] && taken[j.id].owner === myId ? { ...j, status: taken[j.id].status } : j)); } catch (e) {} })(); }, [user?.id]);
   useEffect(() => { const checkReset = () => { const current = getMonthKey(); if (monthKey !== current) { setEarningsToday(0); setEarningsMonth(0); setOrdersHistory([]); setMonthKey(current); } }; checkReset(); const interval = setInterval(checkReset, 60 * 60 * 1000); return () => clearInterval(interval); }, [monthKey]);
-  useEffect(() => { const timers = SIMULATED_ORDERS.map(order => setTimeout(() => { if (!isAvailableRef.current) return; const now = new Date(); const newJob = { id: `j${Date.now()}-${Math.random()}`, client: order.client, phone: order.phone, address: order.address, lat: order.lat, lng: order.lng, time: `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`, status: 'new', items: order.items, total: order.total, tip: order.tip }; setJobs(prev => [newJob, ...prev]); setUnseenCount(prev => prev + 1); showNotification(newJob); }, order.delay)); return () => timers.forEach(t => clearTimeout(t)); }, []);
+  
+  // 💥 ТЕСТОВЫЕ ЗАКАЗЫ ПОЛНОСТЬЮ УДАЛЕНЫ
+
   useEffect(() => { if (tab === 'jobs') setUnseenCount(0); }, [tab]);
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setShowAttach(false));
@@ -1528,7 +1497,15 @@ function MasterScreen({ onExit, user }) {
         <TouchableOpacity style={[styles.tabBtn, tab === 'chat' && styles.tabBtnActive]} onPress={() => setTab('chat')}><Text style={[styles.tabText, tab === 'chat' && styles.tabTextActive]}>Чат</Text></TouchableOpacity>
         <TouchableOpacity style={[styles.tabBtn, tab === 'profile' && styles.tabBtnActive]} onPress={() => setTab('profile')}><Text style={[styles.tabText, tab === 'profile' && styles.tabTextActive]}>Профиль</Text></TouchableOpacity>
       </View>
-      {tab === 'jobs' ? (<FlatList data={jobs} keyExtractor={item => item.id} renderItem={renderJob} contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }} />)
+      {tab === 'jobs' ? (
+        <FlatList 
+          data={jobs} 
+          keyExtractor={item => item.id} 
+          renderItem={renderJob} 
+          contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }} 
+          ListEmptyComponent={<View style={{ padding: 40, alignItems: 'center' }}><Ionicons name="checkmark-done-circle" size={64} color="#333" /><Text style={{ color: '#888', fontSize: 16, marginTop: 16, textAlign: 'center' }}>Новых заявок пока нет.{'\n'}Ожидайте поступления заказов.</Text></View>}
+        />
+      )
        : tab === 'profile' ? (
         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
           <View style={{ paddingHorizontal: 16 }}>
