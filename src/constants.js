@@ -1,15 +1,30 @@
+// ==========================================
+// ЦВЕТА И СТИЛИ ЧАТА / ИНТЕРФЕЙСА
+// ==========================================
 export const MASTER_ACCENT = '#FFFFFF';
 export const WA_CHAT_BG = '#0b141a';
 export const WA_BUBBLE_MINE = '#005c4b';
 export const WA_BUBBLE_OTHER = '#202c33';
-export const WA_GREEN = '#00a884';
-export const WA_TICK = '#53bdeb';
+export const WA_GREEN = '#00a884'; // WhatsApp green
+export const WA_TICK = '#53bdeb';  // Blue ticks
 
+// ==========================================
+// НАСТРОЙКИ СИСТЕМЫ
+// ==========================================
+export const COMMISSION_THRESHOLD = 6000; // Порог для изменения комиссии (7% -> 5%)
+export const DEFAULT_LOCATION = { 
+  lat: 55.7558, 
+  lng: 37.6173, 
+  text: 'Москва (по умолчанию)' 
+};
+
+// Базовая услуга выезда
 export const VISIT_PRICE = '3000 ₽';
 export const VISIT_ID = 's0';
-export const DEFAULT_LOCATION = { lat: 55.7558, lng: 37.6173, text: 'Москва (по умолчанию)' };
-export const COMMISSION_THRESHOLD = 6000;
 
+// ==========================================
+// РАНГИ МАСТЕРОВ
+// ==========================================
 export const RANKS = [
   { id: 'novice', title: 'Новичок', icon: 'leaf', color: '#95a5a6', minOrders: 0, maxOrders: 5 },
   { id: 'apprentice', title: 'Ученик', icon: 'school', color: '#3498db', minOrders: 5, maxOrders: 15 },
@@ -18,6 +33,9 @@ export const RANKS = [
   { id: 'legend', title: 'Легенда', icon: 'trophy', color: '#e74c3c', minOrders: 60, maxOrders: Infinity },
 ];
 
+// ==========================================
+// КАТЕГОРИИ УСЛУГ
+// ==========================================
 export const CATEGORIES = [
   { id: 'service', title: 'Выезд мастера', icon: 'car-sport', color: '#27ae60' },
   { id: 'leak', title: 'Устранение утечек', icon: 'water', color: '#e74c3c' },
@@ -38,11 +56,22 @@ export const CATEGORIES = [
   { id: 'welding', title: 'Сварка', icon: 'bonfire', color: '#ff6b35' },
 ];
 
-const S = (id, category, title, price, icon) => ({ id, category, title, price, icon });
+// ==========================================
+| СПИСОК УСЛУГ (ПРАЙС-ЛИСТ)
+// ==========================================
+const S = (id, category, title, price, icon) => ({ 
+  id, 
+  category, 
+  title, 
+  price, 
+  icon 
+});
 
 export const SERVICES = [
   S(VISIT_ID, 'service', 'Выезд мастера', VISIT_PRICE, 'car-outline'),
   S('lk1', 'leak', 'Устранение утечек', '3000 ₽', 'water-outline'),
+  
+  // ОТОПЛЕНИЕ
   S('h1', 'heating', 'Монтаж радиатора (без подводящих сетей)', '4500 ₽', 'thermometer-outline'),
   S('h2', 'heating', 'Монтаж дизайн-радиаторов', '9000 ₽', 'color-palette-outline'),
   S('h3', 'heating', 'Монтаж радиатора обвязка металлом (чугун)', '6500 ₽', 'cube-outline'),
@@ -56,13 +85,15 @@ export const SERVICES = [
   S('h11', 'heating', 'Монтаж конвектора настенного', '4500 ₽', 'thermometer-outline'),
   S('h12', 'heating', 'Монтаж конвектора напольного', '4500 ₽', 'thermometer-outline'),
   S('h13', 'heating', 'Монтаж конвектора внутрипольного', '9000 ₽', 'thermometer-outline'),
-  S('h14', 'heating', 'Монтаж водяного тепловентилятора (вулкане)', '8000 ₽', 'flame-outline'),
+  S('h14', 'heating', 'Монтаж водяного тепловентилятора', '8000 ₽', 'flame-outline'),
   S('h15', 'heating', 'Обвязка теплообменника вентиляции', '6500 ₽', 'sync-outline'),
   S('h16', 'heating', 'Установка коллекторного шкафа без штробления', '1500 ₽', 'file-tray-stacked-outline'),
   S('h17', 'heating', 'Монтаж коллектора тёплого пола с насосом (до 4 контуров)', '8500 ₽', 'git-merge-outline'),
   S('h18', 'heating', 'Монтаж коллектора отопления (до 4 контуров)', '5000 ₽', 'git-merge-outline'),
   S('h19', 'heating', 'Монтаж РТЛ клапана, ТСГ ВПС', '700 ₽', 'water-outline'),
   S('h20', 'heating', 'Монтаж унибокса', '4500 ₽', 'cube-outline'),
+
+  // КОТЕЛЬНОЕ ОБОРУДОВАНИЕ
   S('b1', 'boiler', 'Монтаж настенного газового котла', '13000 ₽', 'flame-outline'),
   S('b2', 'boiler', 'Монтаж электрического настенного котла', '10500 ₽', 'flash-outline'),
   S('b3', 'boiler', 'Монтаж котла напольного до 50 кВт', '15500 ₽', 'flame-outline'),
@@ -89,6 +120,8 @@ export const SERVICES = [
   S('b24', 'boiler', 'Монтаж газового редуктора', '2000 ₽', 'settings-outline'),
   S('b25', 'boiler', 'Монтаж групп быстрого монтажа', '7000 ₽', 'flash-outline'),
   S('b26', 'boiler', 'Монтаж трубой из нержавейки (+30% к стоимости)', 'договорная', 'add-circle-outline'),
+
+  // ДЫМОХОДЫ
   S('c1', 'chimney', 'Монтаж дымохода (одностенная) до 5 м', '1500 ₽', 'cloud-outline'),
   S('c2', 'chimney', 'Монтаж дымохода (двустенная) до 5 м', '2000 ₽', 'cloud-outline'),
   S('c3', 'chimney', 'Монтаж дымохода по наружней стене (двуст.)', '2500 ₽', 'cloud-outline'),
@@ -96,6 +129,8 @@ export const SERVICES = [
   S('c5', 'chimney', 'Монтаж фасонины дымохода (тройники, углы)', 'от 500 ₽', 'git-branch-outline'),
   S('c6', 'chimney', 'Герметичный проход дымохода через кровлю', '3500 ₽', 'home-outline'),
   S('c7', 'chimney', 'Монтажная площадка', '1500 ₽', 'square-outline'),
+
+  // ВОДОСНАБЖЕНИЕ
   S('w1', 'water', 'Монтаж точки водоснабжения', '1300 ₽', 'water-outline'),
   S('w2', 'water', 'Врезка в трубопровод ХВС ф32–63', '3000 ₽', 'git-merge-outline'),
   S('w3', 'water', 'Монтаж редуктора давления ХВС', '2000 ₽', 'settings-outline'),
@@ -114,6 +149,8 @@ export const SERVICES = [
   S('w16', 'water', 'КИП и арматура (манометр, термометр и т.п.)', '800 ₽', 'speedometer-outline'),
   S('w17', 'water', 'Краны, вентили до 1 "', '1500 ₽', 'water-outline'),
   S('w18', 'water', 'Краны, вентили до 2 "', '2000 ₽', 'water-outline'),
+
+  // КАНАЛИЗАЦИЯ
   S('s1', 'sewer', 'Монтаж точки канализации', '1300 ₽', 'git-network-outline'),
   S('s2', 'sewer', 'Монтаж внутр. канализац. трубопровода ф50', 'от 400 до 700 ₽', 'git-network-outline'),
   S('s3', 'sewer', 'Монтаж внутр. канализац. трубопровода ф110', 'от 500 до 800 ₽', 'git-network-outline'),
@@ -141,6 +178,8 @@ export const SERVICES = [
   S('s25', 'sewer', 'Монтаж дренажных лотков', '2500 ₽', 'remove-outline'),
   S('s26', 'sewer', 'Шумоизоляция стояка', '2500 ₽', 'volume-mute-outline'),
   S('s27', 'sewer', 'Шумоизоляция крестовины', '2000 ₽', 'volume-mute-outline'),
+
+  // ТРУБОПРОВОДЫ
   S('p1', 'pipes', 'Монтаж трубопровода ф16–ф20 м/п, PEX, PERT', '150 ₽', 'git-branch-outline'),
   S('p2', 'pipes', 'Монтаж трубопровода ф25–ф32 м/п, PEX, PERT', '200 ₽', 'git-branch-outline'),
   S('p3', 'pipes', 'Монтаж трубопровода ф20–ф25 ППР', '170 ₽', 'git-branch-outline'),
@@ -164,6 +203,8 @@ export const SERVICES = [
   S('p21', 'pipes', 'Монтаж трубопровода по потолку ф110', '1200 ₽', 'git-branch-outline'),
   S('p22', 'pipes', 'Монтаж трубопровода по потолку ф125', '1500 ₽', 'git-branch-outline'),
   S('p23', 'pipes', 'Труба армированная алюминиевой фольгой (+30% к монтажу)', 'договорная', 'add-circle-outline'),
+
+  // УТЕПЛЕНИЕ
   S('i1', 'insulation', 'Теплоизоляция ф20–ф40', '45 ₽', 'layers-outline'),
   S('i2', 'insulation', 'Теплоизоляция ф50', '55 ₽', 'layers-outline'),
   S('i3', 'insulation', 'Теплоизоляция ф63', '70 ₽', 'layers-outline'),
@@ -176,6 +217,8 @@ export const SERVICES = [
   S('i10', 'insulation', 'Утепление усиленное ф75', '250 ₽', 'layers-outline'),
   S('i11', 'insulation', 'Утепление усиленное ф90', '300 ₽', 'layers-outline'),
   S('i12', 'insulation', 'Утепление усиленное ф110', '400 ₽', 'layers-outline'),
+
+  // ФИЛЬТРАЦИЯ
   S('f1', 'filtration', 'Монтаж колонного фильтра (1 колонна)', '13000 ₽', 'filter-outline'),
   S('f2', 'filtration', 'Монтаж кабинетного фильтра', '10500 ₽', 'filter-outline'),
   S('f3', 'filtration', 'Монтаж солевого бака', '1500 ₽', 'cube-outline'),
@@ -186,6 +229,8 @@ export const SERVICES = [
   S('f8', 'filtration', 'Установка фильтра сетчатого самопромывного ступенчатого', '3000 ₽', 'filter-outline'),
   S('f9', 'filtration', 'Монтаж фильтра кухонного 3х', '4000 ₽', 'filter-outline'),
   S('f10', 'filtration', 'Монтаж кухонного фильтра с обратным осмосом', '6000 ₽', 'filter-outline'),
+
+  // АВТОМАТИКА
   S('a1', 'automation', 'Датчик уличной температуры', '2500 ₽', 'thermometer-outline'),
   S('a2', 'automation', 'Датчик температуры бойлера (БКН)', '2000 ₽', 'thermometer-outline'),
   S('a3', 'automation', 'Комнатный термостат', 'от 2500 до 3000 ₽', 'thermometer-outline'),
@@ -197,10 +242,14 @@ export const SERVICES = [
   S('a9', 'automation', 'Установка доп. модуля к контроллеру', '4000 ₽', 'hardware-chip-outline'),
   S('a10', 'automation', 'Монтаж автоматики насоса водоснабжения', '2000 ₽', 'hardware-chip-outline'),
   S('a11', 'automation', 'Монтаж радиаторной термоголовки', '400 ₽', 'thermometer-outline'),
+
+  // ПУСКОНАЛАДКА
   S('pc1', 'commissioning', 'Запуск и наладка настенного котла', '3000 ₽', 'rocket-outline'),
   S('pc2', 'commissioning', 'Запуск и наладка напольного котла', '3500 ₽', 'rocket-outline'),
   S('pc3', 'commissioning', 'Опрессовка и запуск системы отопления (до 7 рад.)', '2500 ₽', 'water-outline'),
   S('pc4', 'commissioning', 'Заполнение системы теплоносителем', '70 ₽', 'water-outline'),
+
+  // РЕМОНТ
   S('r1', 'repair', 'Выезд мастера на диагностику, сервис, ремонт', '2000 ₽', 'car-outline'),
   S('r2', 'repair', 'Замена турбины', 'от 2000 до 3000 ₽', 'settings-outline'),
   S('r3', 'repair', 'Замена датчиков', 'от 800 до 1500 ₽', 'thermometer-outline'),
@@ -214,6 +263,8 @@ export const SERVICES = [
   S('r11', 'repair', 'Замена вторичного теплообменника', 'от 2000 до 2500 ₽', 'sync-outline'),
   S('r12', 'repair', 'Снять котёл на полную диагностику (с установкой)', 'от 7000 до 8000 ₽', 'construct-outline'),
   S('r13', 'repair', 'Ремонт / замена смесителя', '3000 ₽', 'water-outline'),
+
+  // САНТЕХНИКА
   S('san1', 'sanitary', 'Инсталляция рамы без подводки', '7000 ₽', 'home-outline'),
   S('san2', 'sanitary', 'Установка чаши на инсталляцию', '4500 ₽', 'ellipse-outline'),
   S('san3', 'sanitary', 'Установка унитаза', '3500 ₽', 'ellipse-outline'),
@@ -234,6 +285,8 @@ export const SERVICES = [
   S('san18', 'sanitary', 'Установка стиральной/посудомоечной машины', 'от 2500 ₽', 'cube-outline'),
   S('san19', 'sanitary', 'Установка полотенцесушителя водяного/электрического', 'от 2500 до 3000 ₽', 'thermometer-outline'),
   S('san20', 'sanitary', 'Аксессуары', '1000 ₽', 'add-circle-outline'),
+
+  // ШТРОБЛЕНИЕ
   S('ch1', 'chasing', 'Штроба ф16–ф32 (пеноблок/кирпич/бетон)', 'от 800 до 1500 ₽', 'hammer-outline'),
   S('ch2', 'chasing', 'Штроба ф40–ф63 (пеноблок/кирпич/бетон)', 'от 900 до 1600 ₽', 'hammer-outline'),
   S('ch3', 'chasing', 'Штроба ф75–ф110 (пеноблок/кирпич/бетон)', 'от 1200 до 2300 ₽', 'hammer-outline'),
@@ -248,6 +301,8 @@ export const SERVICES = [
   S('ch12', 'chasing', 'Пробивка отверстий 100×240×360', 'от 1000 до 2500 ₽', 'hammer-outline'),
   S('ch13', 'chasing', 'Прочие отверстия, штробы (по факту)', 'договорная', 'ellipsis-horizontal-outline'),
   S('ch14', 'chasing', 'Штукатурка штроб', '500 ₽', 'brush-outline'),
+
+  // ДОП. РАБОТЫ
   S('e1', 'extra', 'Снятие/установка радиатора для малярных работ', '2000 ₽', 'repeat-outline'),
   S('e2', 'extra', 'Снятие/установка котла навесного для малярных работ', 'от 4000 до 5000 ₽', 'repeat-outline'),
   S('e3', 'extra', 'Подготовительные работы для тёплого пола', '130 ₽', 'construct-outline'),
@@ -255,6 +310,8 @@ export const SERVICES = [
   S('e5', 'extra', 'Расчёт систем водоснабжения и канализации', '70 ₽', 'calculator-outline'),
   S('e6', 'extra', 'Расчёт котельной', '400 ₽', 'calculator-outline'),
   S('e7', 'extra', 'Уборка помещения', 'от 150 до 200 ₽', 'trash-outline'),
+
+  // СВАРКА
   S('wl1', 'welding', 'Сварка стыка Ø15', 'от 500 ₽', 'bonfire-outline'),
   S('wl2', 'welding', 'Сварка стыка Ø20', 'от 650 ₽', 'bonfire-outline'),
   S('wl3', 'welding', 'Сварка стыка Ø25', 'от 850 ₽', 'bonfire-outline'),
@@ -263,18 +320,46 @@ export const SERVICES = [
   S('wl6', 'welding', 'Сварка стыка Ø50', 'от 2000 ₽', 'bonfire-outline'),
 ];
 
-export const CLIENT_PROFILE = { name: 'Вы', surname: '', phone: '+7 (900) 000-00-00', rating: 4.9, reviewsCount: 8, ordersCount: 12, tips: 2500, avatar: null };
+// ==========================================
+// ПРОФИЛИ ПО УМОЛЧАНИЮ (ДЛЯ ДЕМО/ТЕСТА)
+// ==========================================
+export const CLIENT_PROFILE = { 
+  name: 'Вы', 
+  surname: '', 
+  phone: '+7 (900) 000-00-00', 
+  rating: 4.9, 
+  reviewsCount: 8, 
+  ordersCount: 12, 
+  tips: 2500, 
+  avatar: null 
+};
+
+export const MASTER_PROFILE = { 
+  name: 'Сергей', 
+  surname: 'Иванов', 
+  phone: '+7 (900) 123-45-67', 
+  ordersDone: 18, 
+  rating: 4.8, 
+  totalRatings: 27, 
+  balance: 45000, 
+  avatar: null 
+};
+
+// ==========================================
+// СТАТИЧЕСКИЕ ДАННЫЕ (ДЛЯ ПРИМЕРА В UI)
+// ==========================================
 export const CLIENT_REVIEWS = [
   { id: 'cr1', master: 'Сергей Иванов', rating: 5, date: '20 октября', text: 'Отличный клиент, всё по договорённости. Оплата сразу.' },
   { id: 'cr2', master: 'Андрей Петров', rating: 5, date: '18 октября', text: 'Приятный человек, вежливый, заранее подготовил всё для работы.' },
   { id: 'cr3', master: 'Дмитрий Козлов', rating: 5, date: '15 октября', text: 'Всегда рад помочь такому клиенту!' },
 ];
-export const MASTER_PROFILE = { name: 'Сергей', surname: 'Иванов', phone: '+7 (900) 123-45-67', ordersDone: 18, rating: 4.8, totalRatings: 27, balance: 45000, avatar: null };
+
 export const INITIAL_REVIEWS = [
   { id: 'r1', client: 'Иванов И.И.', rating: 5, date: '20 октября', text: 'Отличный мастер! Быстро и качественно установил батарею.', service: 'Монтаж радиатора' },
   { id: 'r2', client: 'Петрова А.С.', rating: 5, date: '18 октября', text: 'Сергей профессионал своего дела.', service: 'Монтаж котла' },
   { id: 'r3', client: 'Сидоров П.П.', rating: 4, date: '15 октября', text: 'Хорошая работа, но приехал на 15 минут позже.', service: 'Ремонт батареи' },
 ];
+
 export const INITIAL_MESSAGES = [
   { id: 'd1', type: 'date', text: 'Сегодня' },
   { id: 'm1', author: 'Сергей', text: 'Кто сегодня на Ленина 15?', time: '09:12', mine: false, type: 'text' },
@@ -283,4 +368,10 @@ export const INITIAL_MESSAGES = [
   { id: 'm4', author: 'Сергей', text: 'Baxi Luna-3, если что — у меня есть инструкция', time: '09:42', mine: false, type: 'text' },
   { id: 'm5', author: 'Вы', text: 'Спасибо, буду знать', time: '09:45', mine: true, type: 'text', read: true },
 ];
-export const STATUS_LABELS = { new: 'Новая', on_way: 'В пути', on_site: 'На объекте', done: 'Завершена' };
+
+export const STATUS_LABELS = { 
+  new: 'Новая', 
+  on_way: 'В пути', 
+  on_site: 'На объекте', 
+  done: 'Завершена' 
+};

@@ -1,122 +1,284 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, KeyboardAvoidingView, ScrollView, Platform, Text, View, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { 
+  SafeAreaView, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  Alert, 
+  ScrollView,
+  ActivityIndicator 
+} from 'react-native';
 import { supabase } from '../config/supabase';
-import { cleanPhone } from '../utils';
-import { HeatingBackground, FlameLogoGlow, AnimatedRoleFooter } from '../components/Backgrounds';
-import styles from '../styles';
 
 export default function AuthScreen({ onAuth }) {
-  const [mode, setMode] = useState('login');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [role, setRole] = useState('client');
   const [loading, setLoading] = useState(false);
 
-  const validate = () => {
-    if (cleanPhone(phone).length < 10) { Alert.alert('Ошибка', 'Введите корректный номер телефона'); return false; }
-    if (password.length < 6) { Alert.alert('Ошибка', 'Пароль минимум 6 символов'); return false; }
-    if (mode === 'register' && !name.trim()) { Alert.alert('Ошибка', 'Введите имя'); return false; }
-    return true;
-  };
+  const handleAuth = async () => {
+    if (!email || !password) {
+      Alert.alert('Ошибка', 'Введите email и пароль');
+      return;
+    }
 
-  const handleSubmit = async () => {
-    if (!validate()) return;
+    if (isSignUp && !name) {
+      Alert.alert('Ошибка', 'Введите имя');
+      return;
+    }
+
     setLoading(true);
+
     try {
-      const p = cleanPhone(phone);
-      const fakeEmail = `${p}@heating.local`;
-      if (mode === 'register') {
-        const { data, error } = await supabase.auth.signUp({ email: fakeEmail, password });
+      if (isSignUp) {
+        // Регистрация
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
         if (error) throw error;
-        if (data.user) {
-          const { error: pe } = await supabase.from('profiles').insert({
-            id: data.user.id, role, name: name.trim(), surname: surname.trim(), phone: p,
-          });
-          if (pe) throw pe;
-          onAuth({ id: data.user.id, role, name: name.trim(), surname: surname.trim(), phone: p });
-        }
+        
+        // Создаем профиль
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: data.user.id,
+          role,
+          name,
+          surname,
+          phone,
+          email,
+        });
+        
+        if (profileError) throw profileError;
+        
+        Alert.alert(
+          'Успех', 
+          'Регистрация успешна! Теперь войдите.',
+          [{ text: 'OK', onPress: () => setIsSignUp(false) }]
+        );
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email: fakeEmail, password });
+        // Вход
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
         if (error) throw error;
-        const { data: profile, error: pe } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
-        if (pe) throw pe;
+        
+        // Загружаем профиль
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profileError) throw profileError;
+        
         onAuth({ id: data.user.id, ...profile });
       }
-    } catch (e) { Alert.alert('Ошибка', e.message || String(e)); }
-    finally { setLoading(false); }
+    } catch (error) {
+      Alert.alert('Ошибка', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <SafeAreaView style={styles.authContainer}>
-      <StatusBar barStyle="light-content" />
-      <HeatingBackground />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.authScroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.authLogoWrap}>
-            <View style={{ width: 90, height: 90, alignItems: 'center', justifyContent: 'center' }}>
-              <FlameLogoGlow />
-              <Ionicons name="flame" size={48} color="#ff8c42" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+      <ScrollView contentContainerStyle={{ padding: 20, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={{ marginTop: 40, marginBottom: 30 }}>
+          <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#fff', textAlign: 'center' }}>
+            {isSignUp ? 'Регистрация' : 'Вход'}
+          </Text>
+          <Text style={{ color: '#888', textAlign: 'center', marginTop: 8, fontSize: 16 }}>
+            {isSignUp ? 'Создайте аккаунт' : 'Войдите в свой аккаунт'}
+          </Text>
+        </View>
+        
+        <TextInput
+          style={{ 
+            backgroundColor: '#1a1a1a', 
+            borderWidth: 1, 
+            borderColor: '#333', 
+            borderRadius: 12, 
+            padding: 15, 
+            marginBottom: 12,
+            color: '#fff',
+            fontSize: 16
+          }}
+          placeholder="Email"
+          placeholderTextColor="#666"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        
+        <TextInput
+          style={{ 
+            backgroundColor: '#1a1a1a', 
+            borderWidth: 1, 
+            borderColor: '#333', 
+            borderRadius: 12, 
+            padding: 15, 
+            marginBottom: 12,
+            color: '#fff',
+            fontSize: 16
+          }}
+          placeholder="Пароль"
+          placeholderTextColor="#666"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        
+        {isSignUp && (
+          <>
+            <TextInput
+              style={{ 
+                backgroundColor: '#1a1a1a', 
+                borderWidth: 1, 
+                borderColor: '#333', 
+                borderRadius: 12, 
+                padding: 15, 
+                marginBottom: 12,
+                color: '#fff',
+                fontSize: 16
+              }}
+              placeholder="Имя"
+              placeholderTextColor="#666"
+              value={name}
+              onChangeText={setName}
+            />
+            
+            <TextInput
+              style={{ 
+                backgroundColor: '#1a1a1a', 
+                borderWidth: 1, 
+                borderColor: '#333', 
+                borderRadius: 12, 
+                padding: 15, 
+                marginBottom: 12,
+                color: '#fff',
+                fontSize: 16
+              }}
+              placeholder="Фамилия"
+              placeholderTextColor="#666"
+              value={surname}
+              onChangeText={setSurname}
+            />
+            
+            <TextInput
+              style={{ 
+                backgroundColor: '#1a1a1a', 
+                borderWidth: 1, 
+                borderColor: '#333', 
+                borderRadius: 12, 
+                padding: 15, 
+                marginBottom: 12,
+                color: '#fff',
+                fontSize: 16
+              }}
+              placeholder="Телефон"
+              placeholderTextColor="#666"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
+            
+            <Text style={{ color: '#fff', marginBottom: 10, fontSize: 16, fontWeight: '600' }}>
+              Выберите роль:
+            </Text>
+            
+            <View style={{ flexDirection: 'row', marginBottom: 15 }}>
+              <TouchableOpacity 
+                style={{ 
+                  flex: 1, 
+                  padding: 15, 
+                  backgroundColor: role === 'client' ? '#3498db' : '#1a1a1a', 
+                  marginRight: 8, 
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: role === 'client' ? '#3498db' : '#333'
+                }}
+                onPress={() => setRole('client')}
+              >
+                <Text style={{ 
+                  textAlign: 'center', 
+                  color: role === 'client' ? '#fff' : '#888',
+                  fontWeight: '600'
+                }}>
+                  👤 Клиент
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={{ 
+                  flex: 1, 
+                  padding: 15, 
+                  backgroundColor: role === 'master' ? '#3498db' : '#1a1a1a', 
+                  marginLeft: 8, 
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: role === 'master' ? '#3498db' : '#333'
+                }}
+                onPress={() => setRole('master')}
+              >
+                <Text style={{ 
+                  textAlign: 'center', 
+                  color: role === 'master' ? '#fff' : '#888',
+                  fontWeight: '600'
+                }}>
+                  🔧 Мастер
+                </Text>
+              </TouchableOpacity>
             </View>
-          </View>
-          <Text style={styles.authTitle}>Отопление и ремонт</Text>
-          <Text style={styles.authSubtitle}>{mode === 'login' ? 'Войдите в аккаунт' : 'Создайте аккаунт'}</Text>
-          
-          <View style={styles.authTabsRow}>
-            <TouchableOpacity style={[styles.authTab, mode === 'login' && styles.authTabActive]} onPress={() => setMode('login')}>
-              <Text style={[styles.authTabText, mode === 'login' && styles.authTabTextActive]}>Вход</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.authTab, mode === 'register' && styles.authTabActive]} onPress={() => setMode('register')}>
-              <Text style={[styles.authTabText, mode === 'register' && styles.authTabTextActive]}>Регистрация</Text>
-            </TouchableOpacity>
-          </View>
-
-          {mode === 'register' && (
-            <>
-              <View style={styles.authInputWrap}>
-                <Ionicons name="person-outline" size={20} color="#666" style={styles.authInputIcon} />
-                <TextInput style={styles.authInput} placeholder="Имя" placeholderTextColor="#666" value={name} onChangeText={setName} autoCapitalize="words" />
-              </View>
-              <View style={styles.authInputWrap}>
-                <Ionicons name="id-card-outline" size={20} color="#666" style={styles.authInputIcon} />
-                <TextInput style={styles.authInput} placeholder="Фамилия" placeholderTextColor="#666" value={surname} onChangeText={setSurname} autoCapitalize="words" />
-              </View>
-            </>
+          </>
+        )}
+        
+        <TouchableOpacity 
+          style={{ 
+            backgroundColor: '#3498db', 
+            padding: 16, 
+            borderRadius: 12, 
+            marginTop: 10,
+            opacity: loading ? 0.6 : 1
+          }}
+          onPress={handleAuth}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={{ 
+              color: '#fff', 
+              textAlign: 'center', 
+              fontWeight: 'bold',
+              fontSize: 16
+            }}>
+              {isSignUp ? 'Зарегистрироваться' : 'Войти'}
+            </Text>
           )}
-
-          <View style={styles.authInputWrap}>
-            <Ionicons name="call-outline" size={20} color="#666" style={styles.authInputIcon} />
-            <TextInput style={styles.authInput} placeholder="+7 (900) 000-00-00" placeholderTextColor="#666" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-          </View>
-          <View style={styles.authInputWrap}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.authInputIcon} />
-            <TextInput style={styles.authInput} placeholder="Пароль (мин. 6 символов)" placeholderTextColor="#666" value={password} onChangeText={setPassword} secureTextEntry />
-          </View>
-
-          {mode === 'register' && (
-            <>
-              <Text style={styles.authRoleLabel}>Выберите роль</Text>
-              <View style={styles.authRoleRow}>
-                <TouchableOpacity style={[styles.authRoleBtn, role === 'client' && styles.authRoleBtnClient]} onPress={() => setRole('client')}>
-                  <Ionicons name="person" size={20} color={role === 'client' ? '#fff' : '#3498db'} />
-                  <Text style={[styles.authRoleBtnText, role === 'client' && { color: '#fff' }]}>Клиент</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.authRoleBtn, role === 'master' && styles.authRoleBtnMaster]} onPress={() => setRole('master')}>
-                  <Ionicons name="construct" size={20} color={role === 'master' ? '#fff' : '#e74c3c'} />
-                  <Text style={[styles.authRoleBtnText, role === 'master' && { color: '#fff' }]}>Мастер</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          <TouchableOpacity style={styles.authSubmitBtn} onPress={handleSubmit} disabled={loading} activeOpacity={0.85}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.authSubmitBtnText}>{mode === 'login' ? 'Войти' : 'Зарегистрироваться'}</Text>}
-          </TouchableOpacity>
-          <AnimatedRoleFooter />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={{ marginTop: 20 }}
+          onPress={() => setIsSignUp(!isSignUp)}
+        >
+          <Text style={{ 
+            textAlign: 'center', 
+            color: '#3498db',
+            fontSize: 15
+          }}>
+            {isSignUp ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация'}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }

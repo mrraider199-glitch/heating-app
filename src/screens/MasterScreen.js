@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Animated, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Animated, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAudioRecorder, AudioModule, RecordingPresets, setAudioModeAsync } from 'expo-audio';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Location from 'expo-location';
+import * as FileSystem from 'expo-file-system';
 import { supabase } from '../config/supabase';
 import { MASTER_PROFILE, INITIAL_REVIEWS, INITIAL_MESSAGES, RANKS, DEFAULT_LOCATION, WA_TICK, WA_GREEN } from '../constants';
 import { getRank, getMonthKey, getDistanceMeters, reverseGeocodeToAddress, parsePrice, getCommissionAmount, formatCommissionPct, formatSec, renderStars } from '../utils';
@@ -44,7 +43,7 @@ export default function MasterScreen({ onExit, user }) {
   const [ordersHistory, setOrdersHistory] = useState([]);
   const [monthKey, setMonthKey] = useState(getMonthKey());
   const [myLocation, setMyLocation] = useState(DEFAULT_LOCATION);
-  
+
   const chatListRef = useRef(null);
   const timerRef = useRef(null);
   const notifOpacity = useRef(new Animated.Value(0)).current;
@@ -55,10 +54,11 @@ export default function MasterScreen({ onExit, user }) {
   useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true }).catch(() => {}); }, []);
   useEffect(() => { isAvailableRef.current = isAvailable; }, [isAvailable]);
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (notifHideRef.current) clearTimeout(notifHideRef.current); }, []);
-  
+
   useEffect(() => {
     (async () => {
       try {
+        const Location = await import('expo-location');
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
@@ -68,24 +68,102 @@ export default function MasterScreen({ onExit, user }) {
     })();
   }, []);
 
+  // Загружаем ОТКРЫТЫЕ заказы + СВОИ активные
   const loadJobs = async () => {
-    const { data } = await supabase.from('orders').select('*, client:profiles!client_id(name, phone, surname)').eq('master_id', user.id).neq('status', 'done');
-    if (data) setJobs(data.map(o => ({ id: o.id, client: o.client ? `${o.client.name || ''} ${o.client.surname || ''}`.trim() || 'Клиент' : 'Клиент', phone: o.client?.phone || '', address: o.address || '', lat: Number(o.lat) || 55.7558, lng: Number(o.lng) || 37.6173, time: new Date(o.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), status: o.status, items: o.items || [], total: o.total, tip: o.tip || 0 })));
+    try {
+      const { data: openJobs, error: e1 } = await supabase
+        .from('orders')
+        .select('*, client:profiles!client_id(name, phone, surname)')
+        .is('master_id', null)
+        .eq('status', 'new')
+        .order('created_at', { ascending: false });
+
+      if (e1) console.log('open jobs error:', e1.message);
+
+      const { data: myJobs, error: e2 } = await supabase
+        .from('orders')
+        .select('*, client:profiles!client_id(name, phone, surname)')
+        .eq('master_id', user.id)
+        .neq('status', 'done')
+        .order('created_at', { ascending: false });
+
+      if (e2) console.log('my jobs error:', e2.message);
+
+      const all = [...(openJobs || []), ...(myJobs || [])];
+
+      setJobs(all.map(o => ({
+        id: o.id,
+        client: o.client ? `${o.client.name || ''} ${o.client.surname || ''}`.trim() || 'Клиент' : 'Клиент',
+        phone: o.client?.phone || '',
+        address: o.address || '',
+        lat: Number(o.lat) || 55.7558,
+        lng: Number(o.lng) || 37.6173,
+        time: new Date(o.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+        status: o.status,
+        items: o.items || [],
+        total: o.total || 0,
+        tip: o.tip || 0,
+        masterId: o.master_id,
+      })));
+    } catch (e) {
+      console.log('loadJobs error:', e.message);
+    }
+  };
+
+  // Взять заказ (с защитой от гонки)
+  const acceptOrder = async (id) => {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ master_id: user.id, status: 'on_way' })
+      .eq('id', id)
+      .is('master_id', null)
+      .eq('status', 'new')
+      .select();
+
+    if (error) {
+      Alert.alert('Ошибка', error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      Alert.alert('Уже занят', 'Этот заказ уже взял другой мастер.');
+      loadJobs();
+      return;
+    }
+    setJobs(prev => prev.map(j => j.id === id ? { ...j, status: 'on_way', masterId: user.id } : j));
+    Alert.alert('Заказ взят!', 'Статус: В пути. Свяжитесь с клиентом.');
   };
 
   const loadHistory = async () => {
-    const { data } = await supabase.from('orders').select('*').eq('master_id', user.id).eq('status', 'done').order('created_at', { ascending: false });
-    if (data) setOrdersHistory(data.map(o => ({ id: o.id, client: 'Клиент', date: new Date(o.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }), amount: o.total, tip: o.tip || 0, items: (o.items || []).map(it => ({ title: it.title, qty: it.qty, price: parsePrice(it.price) })) })));
+    const { data } = await supabase.from('orders').select('*, client:profiles!client_id(name, surname)').eq('master_id', user.id).eq('status', 'done').order('created_at', { ascending: false });
+    if (data) setOrdersHistory(data.map(o => ({
+      id: o.id,
+      client: o.client ? `${o.client.name || ''} ${o.client.surname || ''}`.trim() || 'Клиент' : 'Клиент',
+      date: new Date(o.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
+      amount: o.total || 0,
+      tip: o.tip || 0,
+      items: (o.items || []).map(it => ({ title: it.title, qty: it.qty, price: parsePrice(it.price) })),
+    })));
   };
 
   useEffect(() => {
     loadJobs(); loadHistory();
-    const ch = supabase.channel('master-jobs-' + user.id).on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `master_id=eq.${user.id}` }, () => { loadJobs(); loadHistory(); }).subscribe();
+    const ch = supabase.channel('master-jobs-' + user.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        loadJobs(); loadHistory();
+        if (payload.eventType === 'INSERT' && payload.new?.status === 'new' && !payload.new?.master_id) {
+          showNotification({
+            client: payload.new?.address || 'Новый клиент',
+            total: payload.new?.total || 0,
+            tip: payload.new?.tip || 0,
+          });
+        }
+      })
+      .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user.id]);
 
   useEffect(() => {
-    const checkReset = () => { const current = getMonthKey(); if (monthKey !== current) { setEarningsToday(0); setEarningsMonth(0); setOrdersHistory([]); setMonthKey(current); } };
+    const checkReset = () => { const current = getMonthKey(); if (monthKey !== current) { setEarningsToday(0); setEarningsMonth(0); setMonthKey(current); } };
     checkReset();
     const interval = setInterval(checkReset, 60 * 60 * 1000);
     return () => clearInterval(interval);
@@ -116,7 +194,14 @@ export default function MasterScreen({ onExit, user }) {
     if (error) { Alert.alert('Ошибка', error.message); return; }
     if (newStatus === 'done') {
       const earned = job.total + (job.tip || 0);
-      setProfile(p => ({ ...p, ordersDone: p.ordersDone + 1, balance: p.balance + earned }));
+      try {
+        const { data: prof } = await supabase.from('profiles').select('orders_done, balance').eq('id', user.id).single();
+        await supabase.from('profiles').update({
+          orders_done: (prof?.orders_done || 0) + 1,
+          balance: (prof?.balance || 0) + earned,
+        }).eq('id', user.id);
+      } catch (e) { console.log('profile update err:', e.message); }
+      setProfile(p => ({ ...p, ordersDone: (p.ordersDone || 0) + 1, balance: (p.balance || 0) + earned }));
       setEarningsToday(p => p + earned); setEarningsMonth(p => p + earned);
       setJobs(prev => prev.filter(j => j.id !== id)); loadHistory(); return;
     }
@@ -125,10 +210,10 @@ export default function MasterScreen({ onExit, user }) {
 
   const callClient = (phone) => Linking.openURL(`tel:${phone}`).catch(() => Alert.alert('Ошибка', 'Не удалось открыть звонилку'));
   const openMap = (address) => Linking.openURL(`https://yandex.ru/maps/?text=${encodeURIComponent(address)}`).catch(() => Alert.alert('Ошибка', 'Не удалось открыть карты'));
-  
+
   const addMessage = (payload) => { const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); setMessages(prev => [...prev, { id: `m${Date.now()}-${Math.random()}`, author: 'Вы', time, mine: true, read: false, ...payload }]); };
   const sendMessage = () => { const text = draft.trim(); if (!text) return; addMessage({ type: 'text', text }); setDraft(''); };
-  
+
   const pickPhoto = async () => {
     setShowAttach(false);
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -180,8 +265,16 @@ export default function MasterScreen({ onExit, user }) {
   const renderJob = ({ item, index }) => {
     const services = item.total; const tip = item.tip || 0; const grandTotal = services + tip;
     const distance = (item.lat && item.lng) ? getDistanceMeters(myLocation.lat, myLocation.lng, item.lat, item.lng) : null;
+    const isOpen = item.status === 'new' && !item.masterId;
+
     return (
       <AnimatedCard index={index} style={styles.jobCardDark}>
+        {isOpen && (
+          <View style={{ backgroundColor: 'rgba(231,76,60,0.15)', borderRadius: 8, padding: 8, marginBottom: 10, flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="flame" size={16} color="#e74c3c" />
+            <Text style={{ color: '#e74c3c', fontSize: 12, fontWeight: '700', marginLeft: 6 }}>НОВЫЙ ЗАКАЗ — возьмите первым!</Text>
+          </View>
+        )}
         <View style={styles.jobHeaderRow}>
           <View style={styles.clientBlock}>
             <View style={styles.clientAvatarSmall}><Text style={styles.clientAvatarText}>{(item.client || 'К').charAt(0)}</Text></View>
@@ -217,13 +310,20 @@ export default function MasterScreen({ onExit, user }) {
           <View style={styles.priceTotalRow}><Text style={styles.priceTotalLabel}>К оплате</Text><Text style={styles.priceTotalValue}>{grandTotal.toLocaleString('ru-RU')} ₽</Text></View>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.btnDark} onPress={() => callClient(item.phone)}><Ionicons name="call-outline" size={16} color="#fff" style={{ marginRight: 6 }} /><Text style={styles.btnDarkText}>Позвонить</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.btnDark} onPress={() => openMap(item.address)}><Ionicons name="navigate-outline" size={16} color="#fff" style={{ marginRight: 6 }} /><Text style={styles.btnDarkText}>Маршрут</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.btnDark} onPress={() => callClient(item.phone)} disabled={!item.phone}><Ionicons name="call-outline" size={16} color="#fff" style={{ marginRight: 6 }} /><Text style={styles.btnDarkText}>Позвонить</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.btnDark} onPress={() => openMap(item.address)} disabled={!item.address}><Ionicons name="navigate-outline" size={16} color="#fff" style={{ marginRight: 6 }} /><Text style={styles.btnDarkText}>Маршрут</Text></TouchableOpacity>
         </View>
         <View style={styles.statusRow}>
-          {item.status === 'new' && (<TouchableOpacity style={[styles.statusBtn, { backgroundColor: '#f39c12' }]} onPress={() => updateStatus(item.id, 'on_way')}><Text style={styles.statusBtnText}>Я в пути</Text></TouchableOpacity>)}
-          {item.status === 'on_way' && (<TouchableOpacity style={[styles.statusBtn, { backgroundColor: '#3498db' }]} onPress={() => updateStatus(item.id, 'on_site')}><Text style={styles.statusBtnText}>На объекте</Text></TouchableOpacity>)}
-          {item.status === 'on_site' && (<TouchableOpacity style={[styles.statusBtn, { backgroundColor: '#27ae60' }]} onPress={() => updateStatus(item.id, 'done')}><Text style={styles.statusBtnText}>Завершить</Text></TouchableOpacity>)}
+          {isOpen && (
+            <TouchableOpacity
+              style={[styles.statusBtn, { backgroundColor: '#27ae60' }]}
+              onPress={() => acceptOrder(item.id)}
+            >
+              <Text style={styles.statusBtnText}>🤝 Взять заказ</Text>
+            </TouchableOpacity>
+          )}
+          {item.masterId === user.id && item.status === 'on_way' && (<TouchableOpacity style={[styles.statusBtn, { backgroundColor: '#3498db' }]} onPress={() => updateStatus(item.id, 'on_site')}><Text style={styles.statusBtnText}>На объекте</Text></TouchableOpacity>)}
+          {item.masterId === user.id && item.status === 'on_site' && (<TouchableOpacity style={[styles.statusBtn, { backgroundColor: '#27ae60' }]} onPress={() => updateStatus(item.id, 'done')}><Text style={styles.statusBtnText}>Завершить</Text></TouchableOpacity>)}
         </View>
       </AnimatedCard>
     );
@@ -273,7 +373,7 @@ export default function MasterScreen({ onExit, user }) {
       </View>
 
       {tab === 'jobs' ? (
-        <FlatList data={jobs} keyExtractor={item => item.id} renderItem={renderJob} contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }} ListEmptyComponent={<View style={styles.emptyCart}><Ionicons name="briefcase-outline" size={64} color="#333" /><Text style={styles.emptyCartText}>Нет активных заявок</Text></View>} />
+        <FlatList data={jobs} keyExtractor={item => item.id} renderItem={renderJob} contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }} ListEmptyComponent={<View style={styles.emptyCart}><Ionicons name="briefcase-outline" size={64} color="#333" /><Text style={styles.emptyCartText}>Нет активных заявок</Text><Text style={{ color: '#666', fontSize: 12, marginTop: 8, textAlign: 'center' }}>Новые заказы клиентов появятся здесь автоматически</Text></View>} />
       ) : tab === 'profile' ? (
         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
           <View style={{ paddingHorizontal: 16 }}>
